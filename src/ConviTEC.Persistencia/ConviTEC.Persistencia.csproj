@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\ConviTEC.Core\ConviTEC.Core.csproj" />
+  </ItemGroup>
+</Project>

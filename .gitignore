@@ -426,3 +426,9 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+# ConviTEC: datos que cada sede genera al ejecutarse (los archivos iniciales sí se suben)
+data/*/pedidos.json
+data/*/ventas.json
+data/*/reservas.json
+data/*/*.tmp

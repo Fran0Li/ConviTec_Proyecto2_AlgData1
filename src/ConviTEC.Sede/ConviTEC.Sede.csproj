@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <ItemGroup>
+    <ProjectReference Include="..\ConviTEC.Core\ConviTEC.Core.csproj" />
+    <ProjectReference Include="..\ConviTEC.Persistencia\ConviTEC.Persistencia.csproj" />
+    <ProjectReference Include="..\ConviTEC.Mensajeria\ConviTEC.Mensajeria.csproj" />
+  </ItemGroup>
+</Project>

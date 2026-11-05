@@ -1,0 +1,14 @@
+# RabbitMQ para ConviTEC.
+#   docker compose up -d    → levantar (la primera vez descarga la imagen)
+#   docker compose down     → apagar
+# Panel web: http://localhost:15672  (usuario convitec / contraseña convitec2026)
+services:
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: convitec-rabbitmq
+    ports:
+      - "5672:5672"     # puerto que usan las sedes
+      - "15672:15672"   # panel web
+    environment:
+      RABBITMQ_DEFAULT_USER: convitec
+      RABBITMQ_DEFAULT_PASS: convitec2026

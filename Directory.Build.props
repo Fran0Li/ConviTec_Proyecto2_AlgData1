@@ -1,0 +1,10 @@
+<Project>
+  <!-- Configuración común a todos los proyectos de la solución -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <!-- Desactiva los "using" automáticos de .NET (incluyen System.Linq y System.Collections.Generic),
+         para no usar colecciones del lenguaje sin darse cuenta (RNF-05 y RNF-08). -->
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+</Project>
