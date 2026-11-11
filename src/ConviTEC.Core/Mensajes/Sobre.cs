@@ -2,45 +2,37 @@ using System;
 
 namespace ConviTEC.Core.Mensajes;
 
-/// <summary>
-/// Sobre común de todos los mensajes entre sedes (documento de diseño, sección 5.7).
-/// Lleva los datos que todo mensaje necesita (quién lo envía, a quién, cuándo y un
-/// identificador único) y adentro el contenido propio de cada tipo de mensaje.
-/// </summary>
+// Sobre común de todos los mensajes entre sedes (documento de diseño, sección 5.7).
+// Lleva los datos que todo mensaje necesita (quién lo envía, a quién, cuándo y un
+// identificador único) y adentro el contenido propio de cada tipo de mensaje.
 public class Sobre
 {
-    /// <summary>
-    /// Identificador único: código de la sede de origen + GUID (por ejemplo "LIB-3f9a2c7e...").
-    /// La sede que recibe lo usa para no procesar dos veces el mismo mensaje.
-    /// </summary>
+    // Identificador único: código de la sede de origen + GUID (por ejemplo "LIB-3f9a2c7e...").
+    // La sede que recibe lo usa para no procesar dos veces el mismo mensaje.
     public string IdMensaje { get; }
 
-    /// <summary>Tipo del mensaje. Se toma del contenido, así nunca se contradicen.</summary>
+    // Tipo del mensaje. Se toma del contenido, así nunca se contradicen.
     public TipoMensaje Tipo => Contenido.Tipo;
 
-    /// <summary>Código de la sede que envía, por ejemplo "LIB".</summary>
+    // Código de la sede que envía, por ejemplo "LIB".
     public string SedeOrigen { get; }
 
-    /// <summary>
-    /// Código de la sede destino, por ejemplo "SJO".
-    /// Es null cuando el mensaje es una difusión a todas las sedes.
-    /// </summary>
+    // Código de la sede destino, por ejemplo "SJO".
+    // Es null cuando el mensaje es una difusión a todas las sedes.
     public string? SedeDestino { get; }
 
-    /// <summary>Fecha y hora en que se creó el mensaje, con zona horaria.</summary>
+    // Fecha y hora en que se creó el mensaje, con zona horaria.
     public DateTimeOffset FechaHora { get; }
 
-    /// <summary>Datos propios del tipo de mensaje.</summary>
+    // Datos propios del tipo de mensaje.
     public ContenidoMensaje Contenido { get; }
 
-    /// <summary>True si el mensaje va a todas las sedes (no tiene destino).</summary>
+    // True si el mensaje va a todas las sedes (no tiene destino).
     public bool EsDifusion => SedeDestino == null;
 
-    /// <summary>
-    /// Arma un sobre con todos sus datos. Lo usa la mensajería al recibir un mensaje,
-    /// porque el id y la fecha ya vienen del emisor. Para enviar uno nuevo se usan
-    /// ParaSede o ParaTodas.
-    /// </summary>
+    // Arma un sobre con todos sus datos. Lo usa la mensajería al recibir un mensaje,
+    // porque el id y la fecha ya vienen del emisor. Para enviar uno nuevo se usan
+    // ParaSede o ParaTodas.
     public Sobre(string idMensaje, string sedeOrigen, string? sedeDestino,
                  DateTimeOffset fechaHora, ContenidoMensaje contenido)
     {
@@ -60,7 +52,7 @@ public class Sobre
         Contenido = contenido;
     }
 
-    /// <summary>Crea un mensaje nuevo dirigido a una sola sede (exchange directo).</summary>
+    // Crea un mensaje nuevo dirigido a una sola sede (exchange directo).
     public static Sobre ParaSede(string sedeOrigen, string sedeDestino, ContenidoMensaje contenido)
     {
         if (string.IsNullOrWhiteSpace(sedeDestino))
@@ -68,13 +60,13 @@ public class Sobre
         return new Sobre(NuevoId(sedeOrigen), sedeOrigen, sedeDestino, DateTimeOffset.Now, contenido);
     }
 
-    /// <summary>Crea un mensaje nuevo para todas las sedes (exchange de difusión).</summary>
+    // Crea un mensaje nuevo para todas las sedes (exchange de difusión).
     public static Sobre ParaTodas(string sedeOrigen, ContenidoMensaje contenido)
     {
         return new Sobre(NuevoId(sedeOrigen), sedeOrigen, null, DateTimeOffset.Now, contenido);
     }
 
-    /// <summary>Genera un id único: código de sede + GUID sin guiones.</summary>
+    // Genera un id único: código de sede + GUID sin guiones.
     private static string NuevoId(string sedeOrigen)
     {
         return sedeOrigen + "-" + Guid.NewGuid().ToString("N");

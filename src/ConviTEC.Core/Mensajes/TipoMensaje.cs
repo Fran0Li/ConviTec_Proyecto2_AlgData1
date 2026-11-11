@@ -1,28 +1,26 @@
 namespace ConviTEC.Core.Mensajes;
 
-/// <summary>
-/// Los 7 tipos de mensaje que se intercambian las sedes (documento de diseño, sección 5.7, Tabla 12).
-/// </summary>
+// Los 7 tipos de mensaje que se intercambian las sedes (documento de diseño, sección 5.7, Tabla 12).
 public enum TipoMensaje
 {
-    /// <summary>Directo a la sede dueña: pide reservar varias líneas (todo o nada).</summary>
+    // Directo a la sede dueña: pide reservar varias líneas (todo o nada).
     SolicitudReserva,
 
-    /// <summary>Directo al solicitante: dice si la reserva se aceptó o no, y por qué.</summary>
+    // Directo al solicitante: dice si la reserva se aceptó o no, y por qué.
     RespuestaReserva,
 
-    /// <summary>Directo a la sede dueña: convierte la reserva en descuento real del inventario.</summary>
+    // Directo a la sede dueña: convierte la reserva en descuento real del inventario.
     ConfirmarReserva,
 
-    /// <summary>Directo a la sede dueña: devuelve las unidades reservadas a disponible.</summary>
+    // Directo a la sede dueña: devuelve las unidades reservadas a disponible.
     LiberarReserva,
 
-    /// <summary>Difusión a todas: cantidades disponibles nuevas de algunos productos de una sede.</summary>
+    // Difusión a todas: cantidades disponibles nuevas de algunos productos de una sede.
     ActualizacionInventario,
 
-    /// <summary>Difusión a todas: una sede que arranca pide el inventario de las demás.</summary>
+    // Difusión a todas: una sede que arranca pide el inventario de las demás.
     SolicitudSincronizacion,
 
-    /// <summary>Directo al solicitante: inventario completo de una sede.</summary>
+    // Directo al solicitante: inventario completo de una sede.
     EstadoInventario
 }
