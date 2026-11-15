@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using ConviTEC.Core.Mensajes;
 
@@ -13,10 +14,16 @@ namespace ConviTEC.Mensajeria;
 // que viaja por RabbitMQ.
 public static class SerializadorSobre
 {
+    // Por defecto System.Text.Json escapa las tildes ("límite" sale como "l\u00EDmite").
+    // UnsafeRelaxedJsonEscaping las deja tal cual. El "Unsafe" se refiere a pegar el JSON dentro
+    // de una página HTML; para mensajes entre sedes no hay ese riesgo.
+    private static readonly JavaScriptEncoder Codificador = JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+
     // Los nombres en JSON van en camelCase ("idReserva"), las propiedades en C# en PascalCase ("IdReserva").
     private static readonly JsonSerializerOptions Opciones = new JsonSerializerOptions
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        Encoder = Codificador
     };
 
     // ---------- Sobre → JSON ----------
@@ -27,7 +34,7 @@ public static class SerializadorSobre
             throw new ArgumentNullException(nameof(sobre), "No se puede serializar un sobre nulo.");
 
         using var memoria = new MemoryStream();
-        using (var escritor = new Utf8JsonWriter(memoria))
+        using (var escritor = new Utf8JsonWriter(memoria, new JsonWriterOptions { Encoder = Codificador }))
         {
             escritor.WriteStartObject();
             escritor.WriteString("idMensaje", sobre.IdMensaje);

@@ -57,6 +57,16 @@ public class SerializadorSobreTests
         Assert.Equal(JsonValueKind.Null, doc.RootElement.GetProperty("sedeDestino").ValueKind);
     }
 
+    [Fact]
+    public void Serializar_DejaLasTildesLegibles()
+    {
+        Sobre sobre = Sobre.ParaSede("LIB", "SJO", new LiberarReserva("LIB-0042-SJO", "Tiempo límite agotado"));
+
+        string json = SerializadorSobre.Serializar(sobre);
+
+        Assert.Contains("Tiempo límite agotado", json);
+    }
+
     // ---------- Ida y vuelta de cada tipo ----------
 
     [Fact]
