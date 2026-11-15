@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <!-- Cliente oficial de RabbitMQ para .NET (versión 7: API asíncrona) -->
+    <PackageReference Include="RabbitMQ.Client" Version="7.1.2" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ConviTEC.Core\ConviTEC.Core.csproj" />
   </ItemGroup>
 </Project>
