@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\ConviTEC.Core\ConviTEC.Core.csproj" />
+    <ProjectReference Include="..\..\src\ConviTEC.Mensajeria\ConviTEC.Mensajeria.csproj" />
   </ItemGroup>
 
 </Project>
