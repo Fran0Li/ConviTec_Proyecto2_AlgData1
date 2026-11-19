@@ -1,5 +1,6 @@
 using System.Text;
 using ConviTEC.Core.Mensajes;
+using ConviTEC.Core.Servicios;
 using ConviTEC.Mensajeria;
 using RabbitMQ.Client;
 
@@ -172,6 +173,52 @@ public class BusRabbitMQTests
             await pra.EnviarAsync(enviado);
 
             Assert.Equal(2, await EsperarAsync(segundoIntento.Task));
+        }
+        finally
+        {
+            await pra.DetenerAsync();
+            await prb.DetenerAsync();
+        }
+    }
+
+    // Bus + despachador juntos: si RabbitMQ entrega dos veces el mismo mensaje, se procesa una sola vez.
+    [Fact]
+    public async Task ConDespachador_ElMensajeRepetidoSeProcesaUnaVez()
+    {
+        BusRabbitMQ pra = CrearBus("PRA");
+        BusRabbitMQ prb = CrearBus("PRB");
+        try
+        {
+            Sobre repetido = Sobre.ParaSede("PRA", "PRB", new ConfirmarReserva("PRA-0004-PRB"));
+            Sobre marca = Sobre.ParaSede("PRA", "PRB", new LiberarReserva("PRA-0005-PRB", "marca"));
+            int confirmaciones = 0;
+            var llegoLaMarca = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+            var despachador = new Despachador("PRB", registrar: _ => { });
+            despachador.Registrar(TipoMensaje.ConfirmarReserva, s =>
+            {
+                if (s.IdMensaje == repetido.IdMensaje)
+                    confirmaciones++;
+                return Task.CompletedTask;
+            });
+            despachador.Registrar(TipoMensaje.LiberarReserva, s =>
+            {
+                if (s.IdMensaje == marca.IdMensaje)
+                    llegoLaMarca.TrySetResult(true);
+                return Task.CompletedTask;
+            });
+
+            await prb.IniciarAsync(despachador.ProcesarAsync);
+            await pra.IniciarAsync(_ => Task.CompletedTask);
+
+            // El mismo sobre dos veces y luego la marca. Los mensajes llegan en orden, así que
+            // cuando llega la marca ya pasaron las dos copias.
+            await pra.EnviarAsync(repetido);
+            await pra.EnviarAsync(repetido);
+            await pra.EnviarAsync(marca);
+
+            await EsperarAsync(llegoLaMarca.Task);
+            Assert.Equal(1, confirmaciones);
         }
         finally
         {
