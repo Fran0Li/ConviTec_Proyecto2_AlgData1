@@ -36,7 +36,28 @@ dotnet run --project src/ConviTEC.Sede     # levantar una sede
 docker compose up -d                       # levantar RabbitMQ (con Docker Desktop abierto)
 ```
 
-*Pendiente: instrucciones para levantar cada sede con su configuración y para ejecutar en dos computadoras.*
+### Levantar una sede
+
+Cada sede es la misma aplicación con otra configuración. Se elige con `--sede <CÓDIGO>` (también sirve la variable de entorno `CONVITEC_SEDE`):
+
+```bash
+dotnet run --project src/ConviTEC.Sede -- --sede LIB
+```
+
+| Código | Sede | Puerto | Archivos |
+|---|---|---|---|
+| `LIB` | Liberia | 5101 | `data/LIB/` |
+| `ALA` | Alajuela | 5102 | `data/ALA/` |
+| `SJO` | San José | 5103 | `data/SJO/` |
+| `LIM` | Limón | 5104 | `data/LIM/` |
+
+Al arrancar, la sede lee `appsettings.json` (RabbitMQ) y `appsettings.<CÓDIGO>.json` (código, nombre, puerto y carpeta de datos), y abre `http://localhost:<puerto>`. En Visual Studio hay un perfil de ejecución por sede (LIB, ALA, SJO, LIM). Se pueden levantar las cuatro a la vez en la misma computadora, cada una en su terminal.
+
+- **Agregar o cambiar una sede:** crear `appsettings.<CÓDIGO>.json` (copiar uno existente) y la carpeta `data/<CÓDIGO>/`. No hay que tocar el código.
+- **RabbitMQ en otra computadora:** cambiar `RabbitMQ:Host` en `appsettings.json`, o sin editar archivos: `RabbitMQ__Host=192.168.1.20` como variable de entorno antes de `dotnet run`. Las variables de entorno y la línea de comandos mandan sobre los archivos.
+- Si falta la sede, el código no es válido o falta su archivo, el programa lo dice en consola y termina sin levantar nada.
+
+*Pendiente: pasos completos para ejecutar las cuatro sedes en dos computadoras.*
 
 ## RabbitMQ
 
