@@ -16,9 +16,10 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\ConviTEC.Core\ConviTEC.Core.csproj" />
-    <ProjectReference Include="..\..\src\ConviTEC.Mensajeria\ConviTEC.Mensajeria.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\ConviTEC.Core\ConviTEC.Core.csproj" />
+		<ProjectReference Include="..\..\src\ConviTEC.Mensajeria\ConviTEC.Mensajeria.csproj" />
+		<ProjectReference Include="..\..\src\ConviTEC.Persistencia\ConviTEC.Persistencia.csproj" />
+	</ItemGroup>
 
 </Project>
