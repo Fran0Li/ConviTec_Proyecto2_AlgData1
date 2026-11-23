@@ -1,0 +1,161 @@
+using ConviTEC.Core.Algoritmos;
+using ConviTEC.Core.Grafo;
+using ConviTEC.Core.Modelos;
+
+namespace ConviTEC.Tests.Algoritmos;
+
+public class PlanificadorEntregasTests
+{
+    private static readonly DateTime Salida = new DateTime(2026, 11, 26, 11, 0, 0);
+    private static readonly Sede Alajuela = new Sede("ALA", "ConviTEC Alajuela", "Alajuela");
+    private static readonly Sede Liberia = new Sede("LIB", "ConviTEC Liberia", "Liberia");
+
+    // Las 15 rutas del enunciado
+    private static PlanificadorEntregas Planificador()
+    {
+        return new PlanificadorEntregas(CargadorGrafo.DesdeRutas(new Ruta[]
+        {
+            new Ruta("R01", "Liberia", "Cañas", 65),
+            new Ruta("R02", "Puntarenas", "Orotina", 45),
+            new Ruta("R03", "Puntarenas", "Alajuela", 80),
+            new Ruta("R04", "Orotina", "Alajuela", 55),
+            new Ruta("R05", "Alajuela", "San José", 35),
+            new Ruta("R06", "Alajuela", "Heredia", 20),
+            new Ruta("R07", "San José", "Heredia", 20),
+            new Ruta("R08", "San José", "Cartago", 45),
+            new Ruta("R09", "Cartago", "Paraíso", 15),
+            new Ruta("R10", "Paraíso", "Turrialba", 45),
+            new Ruta("R11", "San José", "Guápiles", 70),
+            new Ruta("R12", "Guápiles", "Siquirres", 55),
+            new Ruta("R13", "Siquirres", "Limón", 65),
+            new Ruta("R14", "Turrialba", "Limón", 75),
+            new Ruta("R15", "Guápiles", "Turrialba", 80)
+        }));
+    }
+
+    // Pedido ya confirmado, listo para entregar
+    private static Pedido Pendiente(string id, string destino)
+    {
+        var pedido = new Pedido(id, "ALA", destino, Salida.AddHours(-1),
+            new[] { new DetallePedido("P001", "Agua", 1, 500m, "ALA") });
+        pedido.Confirmar();
+        return pedido;
+    }
+
+    // Casos normales
+
+    [Fact]
+    public void VaSiempreAlMasCercano()
+    {
+        var pedidos = new[] { Pendiente("A1", "Cartago"), Pendiente("A2", "Heredia"), Pendiente("A3", "San José") };
+
+        Recorrido r = Planificador().Planificar(Alajuela, pedidos, Salida);
+
+        // Alajuela -> Heredia (20) -> San José (20) -> Cartago (45)
+        Assert.Equal(3, r.Paradas.Length);
+        Assert.Equal("Heredia", r.Paradas[0].Destino);
+        Assert.Equal("San José", r.Paradas[1].Destino);
+        Assert.Equal("Cartago", r.Paradas[2].Destino);
+        Assert.Equal(20, r.Paradas[1].TiempoTramo);
+        Assert.Equal(40, r.Paradas[1].TiempoAcumulado);
+        Assert.Equal(85, r.TiempoTotal);
+    }
+
+    [Fact]
+    public void RecalculaDesdeCadaParada()
+    {
+        var pedidos = new[] { Pendiente("A1", "Limón"), Pendiente("A2", "Cartago") };
+
+        Recorrido r = Planificador().Planificar(Alajuela, pedidos, Salida);
+
+        // Cartago (80), y desde Cartago a Limón por Paraíso y Turrialba (135)
+        Assert.Equal("Cartago", r.Paradas[0].Destino);
+        Assert.Equal(new[] { "Cartago", "Paraíso", "Turrialba", "Limón" }, r.Paradas[1].Camino);
+        Assert.Equal(215, r.TiempoTotal);
+    }
+
+    [Fact]
+    public void MismoDestino_UnaSolaParada()
+    {
+        var pedidos = new[] { Pendiente("A1", "Heredia"), Pendiente("A2", "Heredia") };
+
+        Recorrido r = Planificador().Planificar(Alajuela, pedidos, Salida);
+
+        Assert.Single(r.Paradas);
+        Assert.Equal(new[] { "A1", "A2" }, r.Paradas[0].IdsPedidos);
+        Assert.Equal(2, r.CantidadPedidosEntregados);
+    }
+
+    [Fact]
+    public void GuardaSedeYSalida()
+    {
+        Recorrido r = Planificador().Planificar(Alajuela, new[] { Pendiente("A1", "Heredia") }, Salida);
+
+        Assert.Equal("ALA", r.CodigoSede);
+        Assert.Equal("Alajuela", r.UbicacionInicial);
+        Assert.Equal(Salida, r.FechaSalida);
+        Assert.Equal(new[] { "Alajuela", "Heredia" }, r.Paradas[0].Camino);
+    }
+
+    // Casos excepcionales
+
+    [Fact]
+    public void SinPedidos_RecorridoVacio()
+    {
+        Recorrido r = Planificador().Planificar(Alajuela, new Pedido[0], Salida);
+
+        Assert.Empty(r.Paradas);
+        Assert.Equal(0, r.TiempoTotal);
+    }
+
+    [Fact]
+    public void DestinoInalcanzable_QuedaSinEntregar()
+    {
+        var pedidos = new[] { Pendiente("L1", "Heredia"), Pendiente("L2", "Cañas") };
+
+        Recorrido r = Planificador().Planificar(Liberia, pedidos, Salida);
+
+        Assert.Single(r.Paradas);
+        Assert.Equal("Cañas", r.Paradas[0].Destino);
+        Assert.Equal(new[] { "L1" }, r.IdsPedidosNoAlcanzables);
+    }
+
+    [Fact]
+    public void DestinoInexistente_QuedaSinEntregar()
+    {
+        Recorrido r = Planificador().Planificar(Alajuela, new[] { Pendiente("A1", "Narnia") }, Salida);
+
+        Assert.Empty(r.Paradas);
+        Assert.Equal(new[] { "A1" }, r.IdsPedidosNoAlcanzables);
+    }
+
+    [Fact]
+    public void IgnoraPedidosQueNoEstanPendientes()
+    {
+        Pedido cancelado = Pendiente("A1", "Heredia");
+        cancelado.Cancelar("Sin existencias");
+        var registrado = new Pedido("A2", "ALA", "Cartago", Salida,
+            new[] { new DetallePedido("P001", "Agua", 1, 500m, "ALA") });
+
+        Recorrido r = Planificador().Planificar(Alajuela, new[] { cancelado, registrado, null! }, Salida);
+
+        Assert.Empty(r.Paradas);
+        Assert.Empty(r.IdsPedidosNoAlcanzables);
+    }
+
+    [Fact]
+    public void SedeFueraDeLaRed_LanzaExcepcion()
+    {
+        var sede = new Sede("XXX", "Fantasma", "Narnia");
+
+        Assert.Throws<ArgumentException>(() => Planificador().Planificar(sede, new Pedido[0], Salida));
+    }
+
+    [Fact]
+    public void ArgumentosNulos_LanzaExcepcion()
+    {
+        Assert.Throws<ArgumentNullException>(() => Planificador().Planificar(null!, new Pedido[0], Salida));
+        Assert.Throws<ArgumentNullException>(() => Planificador().Planificar(Alajuela, null!, Salida));
+        Assert.Throws<ArgumentNullException>(() => new PlanificadorEntregas(null!));
+    }
+}
