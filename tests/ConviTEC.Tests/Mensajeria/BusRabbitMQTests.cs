@@ -53,7 +53,8 @@ public class BusRabbitMQSinServidorTests
 }
 
 // Pruebas con RabbitMQ de verdad: necesitan Docker levantado (docker compose up -d).
-// Para correr las demás sin Docker:  dotnet test --filter "Categoria!=RabbitMQ"
+// Si RabbitMQ no está, [FactConRabbitMQ] las marca como omitidas en vez de fallar.
+// Para no correrlas aunque RabbitMQ esté:  dotnet test --filter "Categoria!=RabbitMQ"
 // Usan las sedes de prueba "PRA" y "PRB" para no mezclarse con las cuatro sedes reales.
 [Trait("Categoria", "RabbitMQ")]
 public class BusRabbitMQTests
@@ -89,7 +90,7 @@ public class BusRabbitMQTests
     }
 
     // Meta del domingo 15: una sede le manda un mensaje directo a otra.
-    [Fact]
+    [FactConRabbitMQ]
     public async Task DosSedes_MensajeDirectoLlegaASuDestino()
     {
         BusRabbitMQ pra = CrearBus("PRA");
@@ -120,7 +121,7 @@ public class BusRabbitMQTests
     }
 
     // La difusión le llega a todas, incluida la que la envió (filtrarla es del despachador).
-    [Fact]
+    [FactConRabbitMQ]
     public async Task Difusion_LlegaALasOtrasYALaQueLaEnvio()
     {
         BusRabbitMQ pra = CrearBus("PRA");
@@ -147,7 +148,7 @@ public class BusRabbitMQTests
     }
 
     // Si alRecibir lanza una excepción, el mensaje vuelve a la cola y llega otra vez.
-    [Fact]
+    [FactConRabbitMQ]
     public async Task SiFallaElProcesamiento_ElMensajeVuelveALlegar()
     {
         BusRabbitMQ pra = CrearBus("PRA");
@@ -182,7 +183,7 @@ public class BusRabbitMQTests
     }
 
     // Bus + despachador juntos: si RabbitMQ entrega dos veces el mismo mensaje, se procesa una sola vez.
-    [Fact]
+    [FactConRabbitMQ]
     public async Task ConDespachador_ElMensajeRepetidoSeProcesaUnaVez()
     {
         BusRabbitMQ pra = CrearBus("PRA");
@@ -228,7 +229,7 @@ public class BusRabbitMQTests
     }
 
     // Un mensaje que no es un sobre válido se descarta y no tapa a los que vienen detrás.
-    [Fact]
+    [FactConRabbitMQ]
     public async Task MensajeMalFormado_SeDescartaYNoBloqueaLaCola()
     {
         BusRabbitMQ prb = CrearBus("PRB", sinAvisos: true);

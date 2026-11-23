@@ -63,7 +63,9 @@ Al arrancar, la sede lee `appsettings.json` (RabbitMQ) y `appsettings.<CÓDIGO>.
 
 Las sedes se comunican por RabbitMQ, que corre en un contenedor de Docker definido en `docker-compose.yml`.
 
-**¿Cuándo hace falta?** Solo para correr algo que mande o reciba mensajes, como una sede completa o una prueba de pedidos entre sedes. Para trabajar en `Core` (estructuras, grafo, algoritmos) y correr `dotnet test` no se necesita.
+**¿Cuándo hace falta?** Solo para correr algo que mande o reciba mensajes, como una sede completa o una prueba de pedidos entre sedes. Para trabajar en `Core` (estructuras, grafo, algoritmos) no se necesita.
+
+`dotnet test` funciona con o sin RabbitMQ. Sin él, las pruebas que usan RabbitMQ de verdad salen como **omitidas** (con el aviso de cómo levantarlo) y todas las demás corren normal. Con `docker compose up -d` corren todas.
 
 **Levantarlo:**
 
