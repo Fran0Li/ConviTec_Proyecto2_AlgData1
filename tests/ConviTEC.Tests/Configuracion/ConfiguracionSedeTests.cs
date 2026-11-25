@@ -11,6 +11,7 @@ public class ConfiguracionSedeTests
         {
             Codigo = "LIB",
             Nombre = "Liberia",
+            Ubicacion = "Liberia",
             Puerto = 5101,
             CarpetaDatos = "data/LIB"
         };
@@ -128,6 +129,15 @@ public class ConfiguracionSedeTests
     {
         ConfiguracionSede config = Valida();
         config.Nombre = " ";
+
+        Assert.Throws<ArgumentException>(() => config.Validar());
+    }
+
+    [Fact]
+    public void Validar_RechazaUbicacionVacia()
+    {
+        ConfiguracionSede config = Valida();
+        config.Ubicacion = "";
 
         Assert.Throws<ArgumentException>(() => config.Validar());
     }
