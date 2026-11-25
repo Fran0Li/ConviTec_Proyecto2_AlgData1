@@ -1,0 +1,107 @@
+[
+  {
+    "codigo": "P001",
+    "nombre": "Agua mineral 600 ml",
+    "descripcion": "Agua mineral sin gas",
+    "categoria": "Bebidas",
+    "precio": 800
+  },
+  {
+    "codigo": "P002",
+    "nombre": "Gaseosa cola 600 ml",
+    "descripcion": "Refresco de cola",
+    "categoria": "Bebidas",
+    "precio": 1100
+  },
+  {
+    "codigo": "P003",
+    "nombre": "Jugo de naranja 330 ml",
+    "descripcion": "Jugo de naranja natural",
+    "categoria": "Bebidas",
+    "precio": 950
+  },
+  {
+    "codigo": "P004",
+    "nombre": "Café frío en lata",
+    "descripcion": "Café con leche listo para tomar",
+    "categoria": "Bebidas",
+    "precio": 1500
+  },
+  {
+    "codigo": "P005",
+    "nombre": "Papas fritas 45 g",
+    "descripcion": "Papas fritas con sal",
+    "categoria": "Snacks",
+    "precio": 900
+  },
+  {
+    "codigo": "P006",
+    "nombre": "Galletas de chocolate",
+    "descripcion": "Paquete de galletas con chocolate",
+    "categoria": "Snacks",
+    "precio": 750
+  },
+  {
+    "codigo": "P007",
+    "nombre": "Maní salado 50 g",
+    "descripcion": "Maní tostado con sal",
+    "categoria": "Snacks",
+    "precio": 650
+  },
+  {
+    "codigo": "P008",
+    "nombre": "Pan de molde",
+    "descripcion": "Pan de molde blanco",
+    "categoria": "Panadería",
+    "precio": 2200
+  },
+  {
+    "codigo": "P009",
+    "nombre": "Leche entera 1 L",
+    "descripcion": "Leche entera pasteurizada",
+    "categoria": "Lácteos",
+    "precio": 1300
+  },
+  {
+    "codigo": "P010",
+    "nombre": "Queso fresco 250 g",
+    "descripcion": "Queso fresco tipo Turrialba",
+    "categoria": "Lácteos",
+    "precio": 2800
+  },
+  {
+    "codigo": "P011",
+    "nombre": "Arroz 1 kg",
+    "descripcion": "Arroz blanco grano largo",
+    "categoria": "Abarrotes",
+    "precio": 1600
+  },
+  {
+    "codigo": "P012",
+    "nombre": "Frijoles negros 400 g",
+    "descripcion": "Frijoles negros cocidos en lata",
+    "categoria": "Abarrotes",
+    "precio": 1050
+  },
+  {
+    "codigo": "P013",
+    "nombre": "Jabón de manos",
+    "descripcion": "Jabón líquido antibacterial",
+    "categoria": "Higiene",
+    "precio": 1750
+  },
+  {
+    "codigo": "P014",
+    "nombre": "Papel higiénico 4 rollos",
+    "descripcion": "Paquete de 4 rollos",
+    "categoria": "Higiene",
+    "precio": 2400
+  },
+  {
+    "codigo": "P015",
+    "nombre": "Pilas AA 4 unidades",
+    "descripcion": "Pilas alcalinas AA",
+    "categoria": "Hogar",
+    "precio": 3200
+  }
+]

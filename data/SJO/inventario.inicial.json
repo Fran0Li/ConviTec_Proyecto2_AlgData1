@@ -1,0 +1,77 @@
+[
+  {
+    "codigo": "P001",
+    "cantidad": 60,
+    "reservado": 0
+  },
+  {
+    "codigo": "P002",
+    "cantidad": 45,
+    "reservado": 0
+  },
+  {
+    "codigo": "P003",
+    "cantidad": 30,
+    "reservado": 0
+  },
+  {
+    "codigo": "P004",
+    "cantidad": 20,
+    "reservado": 0
+  },
+  {
+    "codigo": "P005",
+    "cantidad": 40,
+    "reservado": 0
+  },
+  {
+    "codigo": "P006",
+    "cantidad": 35,
+    "reservado": 0
+  },
+  {
+    "codigo": "P007",
+    "cantidad": 25,
+    "reservado": 0
+  },
+  {
+    "codigo": "P008",
+    "cantidad": 30,
+    "reservado": 0
+  },
+  {
+    "codigo": "P009",
+    "cantidad": 35,
+    "reservado": 0
+  },
+  {
+    "codigo": "P010",
+    "cantidad": 18,
+    "reservado": 0
+  },
+  {
+    "codigo": "P011",
+    "cantidad": 50,
+    "reservado": 0
+  },
+  {
+    "codigo": "P012",
+    "cantidad": 30,
+    "reservado": 0
+  },
+  {
+    "codigo": "P013",
+    "cantidad": 25,
+    "reservado": 0
+  },
+  {
+    "codigo": "P014",
+    "cantidad": 22,
+    "reservado": 0
+  },
+  {
+    "codigo": "P015",
+    "cantidad": 16,
+    "reservado": 0
+  }
+]

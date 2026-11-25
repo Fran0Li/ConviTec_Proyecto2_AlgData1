@@ -14,6 +14,10 @@ public class ConfiguracionSede
     // Nombre del archivo que marca la raíz del repositorio. Sirve para ubicar la carpeta data/.
     public const string ArchivoRaiz = "ConviTEC.sln";
 
+    // Ubicación de la sede en el grafo de rutas, escrita igual que en rutas.json (por ejemplo "Liberia").
+    // De aquí parten los recorridos de entrega.
+    public string Ubicacion { get; set; } = "";
+
     private const string Uso =
         "Indique la sede con --sede <CÓDIGO> (por ejemplo: dotnet run --project src/ConviTEC.Sede -- --sede LIB) " +
         "o con la variable de entorno CONVITEC_SEDE.";
@@ -74,9 +78,10 @@ public class ConfiguracionSede
             throw new ArgumentException("La configuración de la sede no tiene un código válido (letras A-Z y números).");
         if (string.IsNullOrWhiteSpace(Nombre))
             throw new ArgumentException("La sede " + Codigo + " no tiene nombre.");
+        if (string.IsNullOrWhiteSpace(Ubicacion))
+            throw new ArgumentException("La sede " + Codigo + " no tiene ubicación en el grafo.");
         if (Puerto < 1024 || Puerto > 65535)
-            throw new ArgumentException(
-                "El puerto de la sede " + Codigo + " no es válido: " + Puerto + " (debe estar entre 1024 y 65535).");
+            throw new ArgumentException("El puerto de la sede " + Codigo + " no es válido: " + Puerto + " (debe estar entre 1024 y 65535).");
         if (string.IsNullOrWhiteSpace(CarpetaDatos))
             throw new ArgumentException("La sede " + Codigo + " no tiene carpeta de datos.");
     }
