@@ -1,0 +1,92 @@
+[
+  {
+    "id": "R01",
+    "origen": "Liberia",
+    "destino": "Cañas",
+    "tiempo": 65
+  },
+  {
+    "id": "R02",
+    "origen": "Puntarenas",
+    "destino": "Orotina",
+    "tiempo": 45
+  },
+  {
+    "id": "R03",
+    "origen": "Puntarenas",
+    "destino": "Alajuela",
+    "tiempo": 80
+  },
+  {
+    "id": "R04",
+    "origen": "Orotina",
+    "destino": "Alajuela",
+    "tiempo": 55
+  },
+  {
+    "id": "R05",
+    "origen": "Alajuela",
+    "destino": "San José",
+    "tiempo": 35
+  },
+  {
+    "id": "R06",
+    "origen": "Alajuela",
+    "destino": "Heredia",
+    "tiempo": 20
+  },
+  {
+    "id": "R07",
+    "origen": "San José",
+    "destino": "Heredia",
+    "tiempo": 20
+  },
+  {
+    "id": "R08",
+    "origen": "San José",
+    "destino": "Cartago",
+    "tiempo": 45
+  },
+  {
+    "id": "R09",
+    "origen": "Cartago",
+    "destino": "Paraíso",
+    "tiempo": 15
+  },
+  {
+    "id": "R10",
+    "origen": "Paraíso",
+    "destino": "Turrialba",
+    "tiempo": 45
+  },
+  {
+    "id": "R11",
+    "origen": "San José",
+    "destino": "Guápiles",
+    "tiempo": 70
+  },
+  {
+    "id": "R12",
+    "origen": "Guápiles",
+    "destino": "Siquirres",
+    "tiempo": 55
+  },
+  {
+    "id": "R13",
+    "origen": "Siquirres",
+    "destino": "Limón",
+    "tiempo": 65
+  },
+  {
+    "id": "R14",
+    "origen": "Turrialba",
+    "destino": "Limón",
+    "tiempo": 75
+  },
+  {
+    "id": "R15",
+    "origen": "Guápiles",
+    "destino": "Turrialba",
+    "tiempo": 80
+  }
+]
