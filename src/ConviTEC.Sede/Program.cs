@@ -2,20 +2,24 @@ using System;
 using System.IO;
 using ConviTEC.Core.Configuracion;
 using ConviTEC.Mensajeria;
+using ConviTEC.Sede.Arranque;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 // Punto de entrada de una sede (API REST + frontend en wwwroot).
 // Cada sede es esta misma aplicación con otra configuración:
 //   dotnet run --project src/ConviTEC.Sede -- --sede LIB
-// lee appsettings.LIB.json (código, nombre, puerto y carpeta de datos) y appsettings.json (RabbitMQ).
+// lee appsettings.LIB.json (código, nombre, puerto, ubicación y carpeta de datos) y appsettings.json (RabbitMQ),
+// y reconstruye sus estructuras desde los archivos de data/<CÓDIGO>/.
 var builder = WebApplication.CreateBuilder(args);
 
 string codigo;
 ConfiguracionSede sede;
 OpcionesRabbitMQ rabbit;
+ServiciosSede servicios;
 
 try
 {
@@ -46,8 +50,11 @@ try
     rabbit = builder.Configuration.GetSection("RabbitMQ").Get<OpcionesRabbitMQ>() ?? new OpcionesRabbitMQ();
     rabbit.CodigoSede = sede.Codigo;
     rabbit.Validar();
+
+    // Reconstruye las estructuras de la sede desde sus archivos. Si alguno está dañado, no se levanta.
+    servicios = ArranqueSede.Iniciar(sede, Console.WriteLine);
 }
-catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IOException)
+catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IOException or FormatException)
 {
     Console.Error.WriteLine("No se pudo iniciar la sede: " + ex.Message);
     return 1;
@@ -56,11 +63,25 @@ catch (Exception ex) when (ex is ArgumentException or InvalidOperationException 
 builder.WebHost.UseUrls("http://localhost:" + sede.Puerto);
 builder.Services.AddSingleton(sede);
 builder.Services.AddSingleton(rabbit);
+builder.Services.AddSingleton(servicios);
+builder.Services.AddSingleton(servicios.Destinos);
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
+// Un error que nadie anticipó no muestra detalles técnicos al dependiente: responde 500 con un mensaje en español.
+// (El detalle queda en la consola de la sede.)
+app.UseExceptionHandler(manejador => manejador.Run(async contexto =>
+{
+    contexto.Response.StatusCode = StatusCodes.Status500InternalServerError;
+    contexto.Response.ContentType = "application/json; charset=utf-8";
+    await contexto.Response.WriteAsync("{\"mensaje\":\"Ocurrió un error en la sede. Intente de nuevo.\"}");
+}));
+
+app.UseDefaultFiles();
+app.UseStaticFiles();
+app.MapControllers();
 app.MapGet("/", () => "ConviTEC: sede " + sede.Codigo + " (" + sede.Nombre + ") en construcción");
-app.MapGet("/api/sede", () => new { sede.Codigo, sede.Nombre });
 
 Console.WriteLine("Sede " + sede.Codigo + " (" + sede.Nombre + "): puerto " + sede.Puerto + ", datos en " + sede.CarpetaDatos);
 app.Run();
