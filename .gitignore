@@ -432,3 +432,8 @@ data/*/pedidos.json
 data/*/ventas.json
 data/*/reservas.json
 data/*/*.tmp
+
+# Archivos que la sede reescribe mientras corre (el punto de partida es inventario.inicial.json)
+data/*/inventario.json
+data/*/inventario_global.json
+data/*/contadores.json
