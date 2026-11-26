@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using ConviTEC.Core.Configuracion;
 using ConviTEC.Core.Contratos;
 using ConviTEC.Core.Grafo;
@@ -20,7 +20,7 @@ public static class ArranqueSede
         // 1. Rutas: se carga la matriz de adyacencia y se comprueba que la sede esté en el grafo.
         GrafoDistribucion grafo = CargadorGrafo.DesdeRutas(repositorio.LeerRutas());
         if (!grafo.ExisteUbicacion(sede.Ubicacion))
-            throw new InvalidOperationException("La ubicación \"" + sede.Ubicacion + "\" de la sede " + sede.Codigo + " no aparece en " +RepositorioSedeArchivos.ArchivoRutas + ".");
+            throw new InvalidOperationException("La ubicación \"" + sede.Ubicacion + "\" de la sede " + sede.Codigo + " no aparece en " + RepositorioSedeArchivos.ArchivoRutas + ".");
         registrar("Rutas: " + grafo.CantidadUbicaciones + " ubicaciones y " + grafo.CantidadRutas + " rutas.");
 
         // 2. Catálogo e inventario. Falta insertarlos en el AVL (rol A).
@@ -38,18 +38,21 @@ public static class ArranqueSede
             new RegistroReservasArchivo(repositorio.RutaDe(RepositorioSedeArchivos.ArchivoReservas));
         registrar("Reservas guardadas: " + reservas.Cantidad + " (pendientes: " + reservas.Pendientes().Length + ").");
 
-        // 4. Pedidos y ventas. Falta cancelar los que quedaron esperando reservas.
-        Pedido[] pedidos = repositorio.LeerPedidos();
+        // 4. Pedidos y ventas. El registro de pedidos deja los contadores al día. Falta cancelar los que
+        // quedaron esperando reservas (servicio de pedidos, rol C).
+        AlmacenContadores contadores = new AlmacenContadores(repositorio);
+        RegistroPedidosArchivo pedidos = new RegistroPedidosArchivo(repositorio, contadores);
         Venta[] ventas = repositorio.LeerVentas();
-        Contadores contadores = repositorio.LeerContadores();
-        registrar("Pedidos: " + pedidos.Length + ". Ventas: " + ventas.Length +
+        registrar("Pedidos: " + pedidos.Cantidad + " (esperando reservas: " + pedidos.EnEspera().Length +
+            ", pendientes de entrega: " + pedidos.Pendientes().Length + "). Ventas: " + ventas.Length +
             ". Últimos consecutivos: pedido " + contadores.UltimoPedido + ", venta " + contadores.UltimaVenta + ".");
 
         // 5. Inventario global (la copia de las demás sedes). Falta conectar RabbitMQ y pedir sincronización.
         InventarioDeSede[] global = repositorio.LeerInventarioGlobal();
         registrar("Inventario global: copia de " + global.Length + " sedes.");
 
-        return new ServiciosSede(repositorio, grafo, new ServicioRutas(grafo), new ServicioDestinos(grafo), catalogo, reservas);
+        return new ServiciosSede(repositorio, grafo, new ServicioRutas(grafo), new ServicioDestinos(grafo),
+            catalogo, reservas, contadores, pedidos);
     }
 
     private static bool ExisteProducto(Producto[] catalogo, string codigo)
