@@ -1,0 +1,74 @@
+/* Estilos comunes de ConviTEC. Solo apariencia: nada de lógica del negocio aquí ni en el JS (PR-17). */
+:root {
+  --fondo: #f5f6f8;
+  --tarjeta: #ffffff;
+  --texto: #1d2733;
+  --suave: #5b6776;
+  --borde: #d9dee5;
+  --acento: #1f6feb;
+  --acento-oscuro: #1a58bd;
+  --error: #b3261e;
+  --error-fondo: #fdecea;
+  --aviso-fondo: #fff6df;
+  --ok: #1e7a3c;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  line-height: 1.45;
+}
+
+header.sede {
+  background: var(--acento);
+  color: #fff;
+  padding: 0.9rem 1.5rem 0;
+}
+header.sede h1 { margin: 0; font-size: 1.3rem; }
+header.sede .ubicacion { opacity: 0.85; font-size: 0.9rem; }
+
+nav.menu { display: flex; gap: 0.25rem; margin-top: 0.7rem; flex-wrap: wrap; }
+nav.menu a {
+  color: #fff;
+  text-decoration: none;
+  padding: 0.5rem 0.9rem;
+  border-radius: 6px 6px 0 0;
+  font-size: 0.95rem;
+}
+nav.menu a:hover { background: var(--acento-oscuro); }
+nav.menu a.activo { background: var(--fondo); color: var(--texto); font-weight: 600; }
+
+main { max-width: 960px; margin: 1.5rem auto; padding: 0 1rem; }
+h2 { margin-top: 0; }
+
+.tarjeta {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+table { width: 100%; border-collapse: collapse; background: var(--tarjeta); }
+th, td { text-align: left; padding: 0.5rem 0.7rem; border-bottom: 1px solid var(--borde); font-size: 0.92rem; }
+th { background: #eef1f5; font-weight: 600; }
+td.numero, th.numero { text-align: right; }
+
+.mensaje { padding: 0.7rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+.mensaje.error { background: var(--error-fondo); color: var(--error); border: 1px solid #f0b8b4; }
+.mensaje.aviso { background: var(--aviso-fondo); border: 1px solid #ecd48a; }
+.vacio { color: var(--suave); padding: 1rem 0; }
+
+.etiqueta { display: inline-block; padding: 0.1rem 0.55rem; border-radius: 999px; font-size: 0.8rem; background: #e7ebf0; }
+.etiqueta.Registrado { background: #e9eefc; color: #2641a8; }
+.etiqueta.Pendiente { background: var(--aviso-fondo); color: #8a5a00; }
+.etiqueta.Entregado { background: #e1f4e7; color: var(--ok); }
+.etiqueta.Cancelado { background: var(--error-fondo); color: var(--error); }
+.etiqueta.si { background: #e1f4e7; color: var(--ok); }
+.etiqueta.no { background: #e7ebf0; color: var(--suave); }
+
+a { color: var(--acento); }
