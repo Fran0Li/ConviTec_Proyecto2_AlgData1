@@ -1,4 +1,4 @@
-﻿using ConviTEC.Core.Grafo;
+using ConviTEC.Core.Grafo;
 using ConviTEC.Core.Modelos;
 using ConviTEC.Core.Servicios;
 using ConviTEC.Persistencia;
@@ -10,7 +10,8 @@ namespace ConviTEC.Sede.Arranque;
 public class ServiciosSede
 {
     public ServiciosSede(RepositorioSedeArchivos repositorio, GrafoDistribucion grafo, ServicioRutas rutas,
-        ServicioDestinos destinos, Producto[] catalogo, RegistroReservasArchivo reservas)
+        ServicioDestinos destinos, Producto[] catalogo, RegistroReservasArchivo reservas,
+        AlmacenContadores contadores, RegistroPedidosArchivo pedidos)
     {
         Repositorio = repositorio;
         Grafo = grafo;
@@ -18,6 +19,8 @@ public class ServiciosSede
         Destinos = destinos;
         Catalogo = catalogo;
         Reservas = reservas;
+        Contadores = contadores;
+        Pedidos = pedidos;
     }
 
     public RepositorioSedeArchivos Repositorio { get; }
@@ -29,4 +32,10 @@ public class ServiciosSede
     public Producto[] Catalogo { get; }
 
     public RegistroReservasArchivo Reservas { get; }
+
+    // Numeración de pedidos y ventas que no se repite al reiniciar.
+    public AlmacenContadores Contadores { get; }
+
+    // Todos los pedidos de la sede, guardados en pedidos.json.
+    public RegistroPedidosArchivo Pedidos { get; }
 }

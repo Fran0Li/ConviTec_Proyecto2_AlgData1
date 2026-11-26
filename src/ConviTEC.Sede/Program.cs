@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using System.Text.Json.Serialization;
 using ConviTEC.Core.Configuracion;
+using ConviTEC.Core.Contratos;
 using ConviTEC.Mensajeria;
 using ConviTEC.Sede.Arranque;
 using Microsoft.AspNetCore.Builder;
@@ -65,7 +67,12 @@ builder.Services.AddSingleton(sede);
 builder.Services.AddSingleton(rabbit);
 builder.Services.AddSingleton(servicios);
 builder.Services.AddSingleton(servicios.Destinos);
-builder.Services.AddControllers();
+builder.Services.AddSingleton(servicios.Pedidos);
+builder.Services.AddSingleton<IRegistroPedidos>(servicios.Pedidos);
+
+// Los estados salen como texto ("Pendiente") y no como número, para que el frontend los muestre tal cual.
+builder.Services.AddControllers()
+    .AddJsonOptions(opciones => opciones.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 
 var app = builder.Build();
 
