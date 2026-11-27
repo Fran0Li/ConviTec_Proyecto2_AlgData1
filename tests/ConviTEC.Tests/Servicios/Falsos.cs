@@ -85,6 +85,24 @@ public class InventarioGlobalFalso : IInventarioGlobal
         disponibles.TryGetValue(codigoSede + "|" + codigoProducto, out int n) ? n : 0;
 
     public Producto? BuscarProducto(string codigoProducto) => catalogo.Find(p => p.Codigo == codigoProducto);
+
+    public int VecesEscrita { get; private set; }
+
+    public void ActualizarSede(string codigoSede, LineaMensaje[] lineas)
+    {
+        VecesEscrita++;
+        foreach (LineaMensaje l in lineas)
+            disponibles[codigoSede + "|" + l.Codigo] = l.Cantidad;
+    }
+
+    public void ReemplazarSede(string codigoSede, LineaMensaje[] lineas)
+    {
+        VecesEscrita++;
+        foreach (string clave in disponibles.Keys.Where(k => k.StartsWith(codigoSede + "|")).ToList())
+            disponibles.Remove(clave);
+        ActualizarSede(codigoSede, lineas);
+        VecesEscrita--;
+    }
 }
 
 // Registro de pedidos de mentira: en memoria, con su contador.

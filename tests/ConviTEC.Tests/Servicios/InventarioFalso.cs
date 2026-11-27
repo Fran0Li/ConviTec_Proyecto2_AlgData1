@@ -97,6 +97,18 @@ public class InventarioFalso : IInventarioReservas
         }
     }
 
+    public LineaInventario[] Existencias()
+    {
+        lock (candado)
+        {
+            var lineas = new LineaInventario[codigos.Length];
+            for (int i = 0; i < codigos.Length; i++)
+                lineas[i] = new LineaInventario(codigos[i], cantidades[i], reservados[i]);
+            Array.Sort(lineas, (a, b) => string.CompareOrdinal(a.Codigo, b.Codigo));
+            return lineas;
+        }
+    }
+
     // Antes de confirmar o liberar: cada producto debe existir y tener reservado lo que se pide.
     private void RevisarReservado(LineaReserva[] lineas)
     {

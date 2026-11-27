@@ -138,6 +138,29 @@ public abstract class ContratoInventarioReservasTests
         Assert.Throws<ArgumentException>(() => Crear(("P040", 10)).Disponible("P999"));
     }
 
+    // ---------- Existencias ----------
+
+    [Fact]
+    public void Existencias_DevuelveCantidadYReservadoOrdenadosPorCodigo()
+    {
+        IInventarioReservas inv = Crear(("P040", 10), ("P007", 3));
+        inv.Reservar(Lineas(("P040", 4)), out _);
+
+        LineaInventario[] lineas = inv.Existencias();
+
+        Assert.Equal(2, lineas.Length);
+        Assert.Equal("P007", lineas[0].Codigo);
+        Assert.Equal("P040", lineas[1].Codigo);
+        Assert.Equal(10, lineas[1].Cantidad);
+        Assert.Equal(4, lineas[1].Reservado);
+    }
+
+    [Fact]
+    public void Existencias_SinProductos_DevuelveArregloVacio()
+    {
+        Assert.Empty(Crear().Existencias());
+    }
+
     // ---------- Candado ----------
 
     [Fact]

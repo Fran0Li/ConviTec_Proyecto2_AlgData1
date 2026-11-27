@@ -41,4 +41,9 @@ public interface IInventarioReservas
     // Se usa después de confirmar, para difundir la cantidad final en ActualizacionInventario.
     // Lanza ArgumentException si el producto no existe.
     int Disponible(string codigoProducto);
+
+    // Todo el inventario local: por producto, su cantidad y lo reservado (una línea por producto,
+    // ordenadas por código). Se usa para contestar una SolicitudSincronizacion con EstadoInventario.
+    // Si no hay productos, devuelve un arreglo vacío.
+    LineaInventario[] Existencias();
 }
