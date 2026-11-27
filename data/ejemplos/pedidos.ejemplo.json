@@ -1,0 +1,15 @@
+[
+  {
+    "id": "LIB-0001",
+    "codigoSede": "LIB",
+    "destino": "Cañas",
+    "fechaCreacion": "2026-11-26T09:00:00",
+    "estado": "Pendiente",
+    "detalles": [
+      { "codigoProducto": "P001", "nombreProducto": "Agua mineral 600 ml", "cantidad": 2, "precioUnitario": 800, "codigoSedeOrigen": "LIB" }
+    ],
+    "motivoCancelacion": "",
+    "fechaEntrega": null,
+    "tiempoTraslado": 0
+  }
+]
