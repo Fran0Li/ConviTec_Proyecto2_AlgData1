@@ -59,6 +59,63 @@ Al arrancar, la sede lee `appsettings.json` (RabbitMQ) y `appsettings.<CÓDIGO>.
 
 *Pendiente: pasos completos para ejecutar las cuatro sedes en dos computadoras.*
 
+## Datos, API y frontend de cada sede
+
+### Archivos de datos
+
+Cada sede guarda sus archivos en `data/<CÓDIGO>/` (arreglos JSON). Los de abajo se versionan; el resto lo crea la sede al funcionar y está en `.gitignore`.
+
+| Archivo | Qué guarda | ¿En Git? |
+|---|---|---|
+| `rutas.json` | Rutas del grafo (origen, destino, tiempo) | Sí |
+| `productos.json` | Catálogo (15 productos, igual en las cuatro sedes) | Sí |
+| `inventario.inicial.json` | Existencias con las que arranca cada sede la primera vez | Sí |
+| `inventario.json` | Inventario de la sede mientras funciona (se crea al guardar) | No |
+| `inventario_global.json` | Copia del inventario de las demás sedes | No |
+| `reservas.json` | Reservas de productos entre sedes | No |
+| `pedidos.json` | Pedidos de la sede, en todos sus estados | No |
+| `ventas.json` | Ventas (pedidos entregados) | No |
+| `contadores.json` | Último número de pedido y de venta usados | No |
+
+> Diferencia con el diseño: el documento usa `inventario.json` como semilla y como archivo de trabajo. Como el segundo cambia en cada ejecución, la semilla se llama `inventario.inicial.json` para que Git no registre cambios al probar. Falta actualizar la tabla del documento.
+
+### Cómo se guarda
+
+- Todo se guarda con **escritura segura**: se escribe un archivo temporal, se fuerza a disco y recién entonces reemplaza al archivo real. Si el programa se cae a la mitad, el archivo anterior queda intacto.
+- Si falla el guardado, el cambio en memoria se deshace y el error sube a la API (500 con mensaje en español); no queda memoria distinta de disco.
+- La numeración de pedidos y ventas **no se repite** al reiniciar: se guarda en `contadores.json` y, si ese archivo se pierde, se recupera con el pedido de número más alto.
+- Al arrancar (orden del diseño 5.10) se leen rutas, catálogo, inventario, reservas, pedidos, ventas e inventario global. Si un archivo está dañado, la sede **no se levanta**, dice cuál archivo es y no lo modifica.
+
+### API REST (estado actual)
+
+| Método y ruta | Qué devuelve | Estado |
+|---|---|---|
+| `GET /api/sede` | Código, nombre y ubicación | Listo |
+| `GET /api/destinos` | Ubicaciones del grafo y si se llega desde la sede | Listo |
+| `GET /api/pedidos` | Historial, el más reciente primero | Listo |
+| `GET /api/pedidos/pendientes` | Pendientes de entrega, en orden de llegada | Listo |
+| `GET /api/pedidos/{id}` | Un pedido, o 404 con mensaje | Listo |
+| `POST /api/pedidos`, `/api/productos`, `/api/inventario`, ventas y estadísticas, entregas | — | Pendiente: dependen de las estructuras del rol A |
+
+Los errores de la API vienen como `{ "mensaje": "..." }` en español. Los estados de pedido salen como texto (`Registrado`, `Pendiente`, `Entregado`, `Cancelado`).
+
+### Frontend
+
+Páginas HTML estáticas en `src/ConviTEC.Sede/wwwroot/` (`index`, `pedidos`, `pedido`, `catalogo`, `inventario`) con JavaScript simple: piden datos a la API y los muestran. **No hay lógica del negocio en el JS** (PR-17); los cálculos y validaciones están en el servidor. Las páginas de catálogo e inventario muestran "todavía no está disponible" hasta que existan sus endpoints.
+
+### Probar el reinicio de una sede (PR-14)
+
+Automática: `dotnet test --filter ReinicioDeSedeTests` (guarda de todo, vuelve a abrir y compara; además daña cada archivo y comprueba que la sede no arranca y nombra el archivo).
+
+A mano:
+
+1. Levantar la sede: `dotnet run --project src/ConviTEC.Sede -- --sede LIB`.
+2. Copiar `data/ejemplos/pedidos.ejemplo.json` a `data/LIB/pedidos.json` y levantar la sede: la consola debe decir `Pedidos: 1 ...` y `http://localhost:5101/api/pedidos` debe devolverlo.
+3. Detener la sede (Ctrl+C), volver a levantarla: el pedido sigue ahí.
+4. Detenerla, escribir `{roto` dentro de `data/LIB/pedidos.json` y levantarla: debe salir `No se pudo iniciar la sede: El archivo ...pedidos.json no es un arreglo JSON válido...` y terminar sin abrir el puerto.
+5. Borrar `pedidos.json` (o dejarlo como `[]`) para volver al estado limpio.
+
+
 ## RabbitMQ
 
 Las sedes se comunican por RabbitMQ, que corre en un contenedor de Docker definido en `docker-compose.yml`.
