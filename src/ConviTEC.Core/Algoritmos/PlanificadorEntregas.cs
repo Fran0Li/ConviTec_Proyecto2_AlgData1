@@ -15,6 +15,7 @@ public class PlanificadorEntregas
         this.grafo = grafo ?? throw new ArgumentNullException(nameof(grafo));
     }
 
+    // Recorrido completo de una salida
     public Recorrido Planificar(Sede sede, Pedido[] pedidos, DateTime salida)
     {
         if (sede == null)
@@ -24,53 +25,20 @@ public class PlanificadorEntregas
         if (!grafo.ExisteUbicacion(sede.Ubicacion))
             throw new ArgumentException("La sede '" + sede.Ubicacion + "' no está en la red de distribución.", nameof(sede));
 
-        int n = pedidos.Length;
-        bool[] entregado = new bool[n];
-        ParadaRecorrido[] paradas = new ParadaRecorrido[n];
+        bool[] entregado = new bool[pedidos.Length];
+        ParadaRecorrido[] paradas = new ParadaRecorrido[pedidos.Length];
         int cantidadParadas = 0;
-        int acumulado = 0;
         string actual = grafo.NombreDe(grafo.IndiceDe(sede.Ubicacion));
+        int acumulado = 0;
 
-        while (true)
+        ParadaRecorrido? parada = SiguienteParada(actual, pedidos, entregado, acumulado);
+        while (parada != null)
         {
-            ResultadoDijkstra dijkstra = Dijkstra.Calcular(grafo, actual);
-
-            // Pedido pendiente más cercano. En empate gana el primero de la lista.
-            int elegido = -1;
-            int mejorTiempo = 0;
-            for (int i = 0; i < n; i++)
-            {
-                if (entregado[i] || !EsPendiente(pedidos[i]) || !grafo.ExisteUbicacion(pedidos[i].Destino))
-                    continue;
-
-                int tiempo = dijkstra.TiempoHasta(pedidos[i].Destino);
-                if (tiempo == ResultadoDijkstra.Inalcanzable)
-                    continue;
-
-                if (elegido == -1 || tiempo < mejorTiempo)
-                {
-                    elegido = i;
-                    mejorTiempo = tiempo;
-                }
-            }
-
-            // No queda nada alcanzable
-            if (elegido == -1)
-                break;
-
-            string destino = grafo.NombreDe(grafo.IndiceDe(pedidos[elegido].Destino));
-            acumulado += mejorTiempo;
-
-            var parada = new ParadaRecorrido();
-            parada.Destino = destino;
-            parada.Camino = dijkstra.CaminoHasta(destino);
-            parada.TiempoTramo = mejorTiempo;
-            parada.TiempoAcumulado = acumulado;
-            parada.IdsPedidos = EntregarTodosEn(destino, pedidos, entregado);
-
             paradas[cantidadParadas] = parada;
             cantidadParadas++;
-            actual = destino;
+            actual = parada.Destino;
+            acumulado = parada.TiempoAcumulado;
+            parada = SiguienteParada(actual, pedidos, entregado, acumulado);
         }
 
         var recorrido = new Recorrido();
@@ -80,6 +48,57 @@ public class PlanificadorEntregas
         recorrido.Paradas = Recortar(paradas, cantidadParadas);
         recorrido.IdsPedidosNoAlcanzables = NoEntregados(pedidos, entregado);
         return recorrido;
+    }
+
+    // Un solo paso ("calcular el siguiente punto de entrega"): la próxima parada desde la
+    // ubicación actual, o null si no queda nada alcanzable. TiempoAcumulado = TiempoTramo.
+    public ParadaRecorrido? SiguienteEntrega(string ubicacionActual, Pedido[] pedidos)
+    {
+        if (pedidos == null)
+            throw new ArgumentNullException(nameof(pedidos));
+        if (!grafo.ExisteUbicacion(ubicacionActual))
+            throw new ArgumentException("La ubicación '" + ubicacionActual + "' no está en la red de distribución.", nameof(ubicacionActual));
+
+        string actual = grafo.NombreDe(grafo.IndiceDe(ubicacionActual));
+        return SiguienteParada(actual, pedidos, new bool[pedidos.Length], 0);
+    }
+
+    // Dijkstra desde "actual" y elige el pedido pendiente más cercano.
+    // En empate gana el primero de la lista. Marca como entregados los de ese destino.
+    private ParadaRecorrido? SiguienteParada(string actual, Pedido[] pedidos, bool[] entregado, int acumulado)
+    {
+        ResultadoDijkstra dijkstra = Dijkstra.Calcular(grafo, actual);
+
+        int elegido = -1;
+        int mejorTiempo = 0;
+        for (int i = 0; i < pedidos.Length; i++)
+        {
+            if (entregado[i] || !EsPendiente(pedidos[i]) || !grafo.ExisteUbicacion(pedidos[i].Destino))
+                continue;
+
+            int tiempo = dijkstra.TiempoHasta(pedidos[i].Destino);
+            if (tiempo == ResultadoDijkstra.Inalcanzable)
+                continue;
+
+            if (elegido == -1 || tiempo < mejorTiempo)
+            {
+                elegido = i;
+                mejorTiempo = tiempo;
+            }
+        }
+
+        if (elegido == -1)
+            return null;
+
+        string destino = grafo.NombreDe(grafo.IndiceDe(pedidos[elegido].Destino));
+
+        var parada = new ParadaRecorrido();
+        parada.Destino = destino;
+        parada.Camino = dijkstra.CaminoHasta(destino);
+        parada.TiempoTramo = mejorTiempo;
+        parada.TiempoAcumulado = acumulado + mejorTiempo;
+        parada.IdsPedidos = EntregarTodosEn(destino, pedidos, entregado);
+        return parada;
     }
 
     // Marca como entregados todos los pedidos con ese destino y devuelve sus ids

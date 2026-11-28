@@ -9,7 +9,9 @@ const Api = (function () {
     { id: "inicio", texto: "Inicio", url: "index.html" },
     { id: "pedidos", texto: "Pedidos", url: "pedidos.html" },
     { id: "catalogo", texto: "Catálogo", url: "catalogo.html" },
-    { id: "inventario", texto: "Inventario", url: "inventario.html" }
+    { id: "inventario", texto: "Inventario", url: "inventario.html" },
+    { id: "entregas", texto: "Entregas", url: "entregas.html" }
+    
   ];
 
   // Pide datos a la API y devuelve el JSON. Si algo sale mal lanza un Error con un mensaje en español

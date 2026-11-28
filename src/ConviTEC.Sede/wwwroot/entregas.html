@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ConviTEC · Entregas</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <header class="sede"></header>
+  <main>
+    <h2>Entregas</h2>
+    <div id="mensaje"></div>
+
+    <section class="tarjeta">
+      <label for="salida">Salida:</label>
+      <input type="datetime-local" id="salida">
+      <button type="button" class="secundario" id="btnCargar">Ver recorrido</button>
+      <p class="resumen">Si no se escoge una hora, se usa la próxima salida (11:00 o 15:00).</p>
+    </section>
+
+    <section>
+      <h3>Recorrido planificado</h3>
+      <p class="resumen" id="resumenPlan"></p>
+      <div id="avisoPlan"></div>
+      <div id="plan"></div>
+      <div class="acciones">
+        <button type="button" id="btnSiguiente">Entregar en el siguiente punto</button>
+        <button type="button" class="secundario" id="btnTodo">Entregar todo el recorrido</button>
+      </div>
+    </section>
+
+    <section>
+      <h3>Entregas realizadas</h3>
+      <p class="resumen" id="ubicacion"></p>
+      <div id="realizadas"></div>
+    </section>
+  </main>
+  <script src="js/api.js"></script>
+  <script src="js/entregas.js"></script>
+</body>
+</html>

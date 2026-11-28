@@ -95,13 +95,16 @@ Cada sede guarda sus archivos en `data/<CÓDIGO>/` (arreglos JSON). Los de abajo
 | `GET /api/pedidos` | Historial, el más reciente primero | Listo |
 | `GET /api/pedidos/pendientes` | Pendientes de entrega, en orden de llegada | Listo |
 | `GET /api/pedidos/{id}` | Un pedido, o 404 con mensaje | Listo |
-| `POST /api/pedidos`, `/api/productos`, `/api/inventario`, ventas y estadísticas, entregas | — | Pendiente: dependen de las estructuras del rol A |
+| `GET /api/entregas/plan?salida=` | Recorrido planificado de la salida (sin entregar nada) | Listo |
+| `POST /api/entregas?salida=` | Entrega todo el recorrido y guarda las ventas | Listo |
+| `POST /api/entregas/siguiente?desde=&acumulado=&salida=` | Entrega solo en el siguiente punto (paso a paso) | Listo |
+| `POST /api/pedidos`, `/api/productos`, `/api/inventario`, ventas y estadísticas | — | Pendiente: dependen de las estructuras del rol A |
 
 Los errores de la API vienen como `{ "mensaje": "..." }` en español. Los estados de pedido salen como texto (`Registrado`, `Pendiente`, `Entregado`, `Cancelado`).
 
 ### Frontend
 
-Páginas HTML estáticas en `src/ConviTEC.Sede/wwwroot/` (`index`, `pedidos`, `pedido`, `catalogo`, `inventario`) con JavaScript simple: piden datos a la API y los muestran. **No hay lógica del negocio en el JS** (PR-17); los cálculos y validaciones están en el servidor. Las páginas de catálogo e inventario muestran "todavía no está disponible" hasta que existan sus endpoints.
+Páginas HTML estáticas en `src/ConviTEC.Sede/wwwroot/` (`index`, `pedidos`, `pedido`, `entregas`, `catalogo`, `inventario`) con JavaScript simple: piden datos a la API y los muestran. **No hay lógica del negocio en el JS** (PR-17); los cálculos y validaciones están en el servidor. Las páginas de catálogo e inventario muestran "todavía no está disponible" hasta que existan sus endpoints.
 
 ### Probar el reinicio de una sede (PR-14)
 
@@ -115,7 +118,44 @@ A mano:
 4. Detenerla, escribir `{roto` dentro de `data/LIB/pedidos.json` y levantarla: debe salir `No se pudo iniciar la sede: El archivo ...pedidos.json no es un arreglo JSON válido...` y terminar sin abrir el puerto.
 5. Borrar `pedidos.json` (o dejarlo como `[]`) para volver al estado limpio.
 
+## Grafo y entregas
 
+### Red de distribución
+
+- `rutas.json` se carga con `CargadorGrafo` y queda en un `GrafoDistribucion`: un grafo **no dirigido y ponderado** (minutos) guardado en una **matriz de adyacencia**. La celda `[i, j]` tiene los minutos entre las ubicaciones `i` y `j`, o `0` si no hay ruta directa.
+- Se usa matriz porque saber si dos lugares están conectados y cuánto tarda es inmediato, y la red es pequeña (13 ubicaciones).
+- Si una ruta viene repetida se queda la más rápida. Los nombres se buscan sin importar mayúsculas ni espacios.
+- Un archivo de rutas mal escrito no se corrige en silencio: se rechaza diciendo cuál ruta falla.
+
+### Dijkstra y destinos
+
+- `Dijkstra.Calcular(grafo, origen)` usa arreglos, sin montículo: **O(V²)**. Con matriz de adyacencia hay que recorrer la fila completa para hallar las vecinas, así que un montículo no mejora el orden.
+- Devuelve un `ResultadoDijkstra` con el tiempo mínimo, el camino y si el destino es alcanzable. Por ejemplo, de Alajuela a Limón da 215 min por Cartago, aunque por Guápiles haya menos paradas (225 min).
+- `ServicioRutas.ValidarDestino` dice si una sede puede entregar en un destino y, si no, por qué. Por ejemplo, desde Liberia solo se puede entregar en Cañas, porque Guanacaste está aislado.
+
+### Salidas y planificador voraz
+
+- `HorarioSalidas` da la próxima salida (11:00 o 15:00) y escoge los pedidos que van en ella.
+- `PlanificadorEntregas` sigue el procedimiento del enunciado: desde la sede corre Dijkstra, va al destino pendiente más cercano, actualiza la ubicación y repite hasta que no quede nada alcanzable. Puede pasar por puntos sin pedidos, y los pedidos con el mismo destino se entregan en una sola parada.
+- Ejemplo desde Alajuela, con pedidos a Cartago, Heredia y Limón: Heredia (20) → Cartago (85 acumulados) → Limón (220).
+- Es **voraz**: escoge lo mejor en cada paso, no el mejor recorrido total. En una línea `B —11— Sede —10— A —20— C`, va a A, C y B (71 min), cuando B, A y C tomaría 52.
+
+### Venta al entregar
+
+- `ServicioEntregas` entrega todo un recorrido o un solo paso ("calcular el siguiente punto de entrega"). Cada pedido entregado queda como `Entregado`, con hora = salida + minutos acumulados y tiempo de traslado = minutos acumulados, y genera su `Venta` (`V-<id del pedido>`), que se agrega a `ventas.json`.
+- Rendimiento de un pedido = monto ÷ minutos de traslado. Con 0 minutos se toma 1, para no dividir entre cero.
+- Si se intenta entregar dos veces el mismo pedido, la segunda vez no se registra otra venta.
+
+### Decisiones propias (el enunciado no las define)
+
+| Caso | Decisión |
+|---|---|
+| Qué pedidos van en cada salida | Los pendientes creados antes o justo a la hora de salida |
+| Pedido creado justo a las 11:00 | Va en la salida de las 11:00 |
+| Dos destinos a la misma distancia | Gana el pedido que llegó primero |
+| Regreso a la sede | No se cuenta: el tiempo total es hasta la última entrega |
+| Destino igual a la sede | Se rechaza: no hace falta entrega |
+| Empezar paso a paso y luego "entregar todo" | La página no lo permite: se termina en el modo en que se empezó |
 ## RabbitMQ
 
 Las sedes se comunican por RabbitMQ, que corre en un contenedor de Docker definido en `docker-compose.yml`.
@@ -164,4 +204,179 @@ Las sedes se comunican por RabbitMQ, que corre en un contenedor de Docker defini
 
 ## Diagrama UML de clases
 
-*Pendiente.*
+### Modelos, grafo y entregas
+
+```mermaid
+classDiagram
+    direction LR
+
+    class Producto {
+        +string Codigo
+        +string Nombre
+        +string Descripcion
+        +string Categoria
+        +decimal Precio
+    }
+    class Sede {
+        +string Codigo
+        +string Nombre
+        +string Ubicacion
+    }
+    class EstadoPedido {
+        <<enumeration>>
+        Registrado
+        Pendiente
+        Entregado
+        Cancelado
+    }
+    class DetallePedido {
+        +string CodigoProducto
+        +string NombreProducto
+        +int Cantidad
+        +decimal PrecioUnitario
+        +string CodigoSedeOrigen
+        +decimal Subtotal
+    }
+    class Pedido {
+        +string Id
+        +string CodigoSede
+        +string Destino
+        +DateTime FechaCreacion
+        +EstadoPedido Estado
+        +DetallePedido[] Detalles
+        +DateTime? FechaEntrega
+        +int TiempoTraslado
+        +decimal MontoTotal
+        +decimal Rendimiento
+        +SedesParticipantes() string[]
+        +Confirmar()
+        +Cancelar(motivo)
+        +MarcarEntregado(fecha, minutos)
+    }
+    class Venta {
+        +string Id
+        +string IdPedido
+        +string CodigoSede
+        +DateTime Fecha
+        +DetallePedido[] Detalles
+        +int TiempoTraslado
+        +decimal MontoTotal
+        +decimal Rendimiento
+        +DesdePedido(pedido)$ Venta
+    }
+    class EstadoReserva {
+        <<enumeration>>
+        Pendiente
+        Confirmada
+        Liberada
+        Rechazada
+    }
+    class Reserva {
+        +string IdReserva
+        +string IdPedido
+        +string SedeSolicitante
+        +string SedeDuena
+        +LineaReserva[] Lineas
+        +EstadoReserva Estado
+        +DateTime FechaVencimiento
+        +EstaVencida(ahora) bool
+        +Confirmar()
+        +Liberar()
+    }
+    class LineaReserva {
+        +string CodigoProducto
+        +int Cantidad
+    }
+    class Recorrido {
+        +string CodigoSede
+        +string UbicacionInicial
+        +DateTime FechaSalida
+        +ParadaRecorrido[] Paradas
+        +string[] IdsPedidosNoAlcanzables
+        +int TiempoTotal
+    }
+    class ParadaRecorrido {
+        +string Destino
+        +string[] Camino
+        +int TiempoTramo
+        +int TiempoAcumulado
+        +string[] IdsPedidos
+    }
+
+    class Ruta {
+        +string Id
+        +string Origen
+        +string Destino
+        +int Tiempo
+    }
+    class GrafoDistribucion {
+        -string[] ubicaciones
+        -int[,] matriz
+        +AgregarUbicacion(nombre) int
+        +AgregarRuta(origen, destino, tiempo)
+        +IndiceDe(nombre) int
+        +Tiempo(i, j) int
+    }
+    class CargadorGrafo {
+        <<static>>
+        +DesdeJson(json)$ GrafoDistribucion
+        +DesdeRutas(rutas)$ GrafoDistribucion
+    }
+    class Dijkstra {
+        <<static>>
+        +Calcular(grafo, origen)$ ResultadoDijkstra
+    }
+    class ResultadoDijkstra {
+        -int[] distancia
+        -int[] anterior
+        +EsAlcanzable(destino) bool
+        +TiempoHasta(destino) int
+        +CaminoHasta(destino) string[]
+    }
+    class ServicioRutas {
+        +ValidarDestino(sede, destino) ValidacionRuta
+        +DestinosAlcanzables(sede) string[]
+    }
+    class HorarioSalidas {
+        <<static>>
+        +ProximaSalida(ahora)$ DateTime
+        +PedidosParaSalida(pedidos, salida)$ Pedido[]
+    }
+    class PlanificadorEntregas {
+        +Planificar(sede, pedidos, salida) Recorrido
+        +SiguienteEntrega(ubicacion, pedidos) ParadaRecorrido
+    }
+    class ServicioEntregas {
+        +PlanificarSalida(sede, pendientes, salida) Recorrido
+        +EntregarSiguiente(sede, desde, acumulado) PasoEntrega
+        +RegistrarEntregas(recorrido) Venta[]
+    }
+    class IRegistroPedidos {
+        <<interface>>
+        +Buscar(id) Pedido
+        +Guardar(pedido)
+    }
+
+    Pedido "1" *-- "1..*" DetallePedido
+    Pedido --> EstadoPedido
+    Venta "1" *-- "1..*" DetallePedido
+    Venta ..> Pedido : se crea desde
+    Reserva "1" *-- "1..*" LineaReserva
+    Reserva --> EstadoReserva
+    Recorrido "1" *-- "0..*" ParadaRecorrido
+    CargadorGrafo ..> Ruta : lee
+    CargadorGrafo ..> GrafoDistribucion : crea
+    Dijkstra ..> GrafoDistribucion : recorre
+    Dijkstra ..> ResultadoDijkstra : devuelve
+    ServicioRutas --> GrafoDistribucion
+    ServicioRutas ..> Dijkstra
+    PlanificadorEntregas --> GrafoDistribucion
+    PlanificadorEntregas ..> Dijkstra : en cada parada
+    PlanificadorEntregas ..> Recorrido : crea
+    ServicioEntregas --> PlanificadorEntregas
+    ServicioEntregas --> IRegistroPedidos
+    ServicioEntregas ..> HorarioSalidas
+    ServicioEntregas ..> Venta : crea
+```
+
+*Faltan las clases de los demás roles (estructuras, inventario, mensajes y persistencia).*

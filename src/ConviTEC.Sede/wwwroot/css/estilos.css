@@ -72,3 +72,11 @@ td.numero, th.numero { text-align: right; }
 .etiqueta.no { background: #e7ebf0; color: var(--suave); }
 
 a { color: var(--acento); }
+/* Botones y controles (página de entregas) */
+.acciones { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin: 0.8rem 0; }
+button { background: var(--acento); color: #fff; border: none; border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.92rem; cursor: pointer; }
+button:hover { background: var(--acento-oscuro); }
+button:disabled, button.secundario:disabled { background: var(--borde); color: var(--suave); border-color: var(--borde); cursor: default; }
+button.secundario { background: var(--tarjeta); color: var(--acento); border: 1px solid var(--acento); }
+input { padding: 0.4rem 0.5rem; border: 1px solid var(--borde); border-radius: 6px; font: inherit; }
+.resumen { color: var(--suave); margin: 0.3rem 0 0.8rem; }
